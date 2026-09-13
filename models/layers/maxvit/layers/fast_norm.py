@@ -49,7 +49,7 @@ def fast_group_norm(
         dt = torch.get_autocast_gpu_dtype()
         x, weight, bias = x.to(dt), weight.to(dt), bias.to(dt)
 
-    with torch.cuda.amp.autocast(enabled=False):
+    with torch.amp.autocast("cuda", enabled=False):
         return F.group_norm(x, num_groups, weight, bias, eps)
 
 
@@ -74,5 +74,5 @@ def fast_layer_norm(
         # FIXME what to do re CPU autocast?
         x, weight, bias = x.to(dt), weight.to(dt), bias.to(dt)
 
-    with torch.cuda.amp.autocast(enabled=False):
+    with torch.amp.autocast("cuda", enabled=False):
         return F.layer_norm(x, normalized_shape, weight, bias, eps)

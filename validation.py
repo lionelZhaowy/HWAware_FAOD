@@ -93,7 +93,6 @@ def main(config: DictConfig):
         logger=logger,
         log_every_n_steps=100,
         precision=config.training.precision,
-        move_metrics_to_cpu=False,
     )
     with torch.inference_mode():
         if config.use_test_set:

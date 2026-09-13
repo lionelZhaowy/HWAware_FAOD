@@ -1,0 +1,18 @@
+# Python 3.12 + existing Torch 2.5.0/cu121; see docs/ENVIRONMENT.md.
+-c pytorch-constraints.txt
+hydra-core==1.3.2
+einops==0.8.1
+h5py==3.12.1
+hdf5plugin==5.0.0
+pytorch-lightning==2.5.5
+torchmetrics==1.6.1
+lightning-utilities==0.15.2
+wandb==0.19.11
+plotly==5.24.1
+bbox-visualizer==0.1.0
+ipdb==0.13.13
+numba==0.60.0
+mmengine==0.10.7
+
+# Keep the existing psutil while using a Python 3.12-compatible debugger.
+ipython==8.31.0

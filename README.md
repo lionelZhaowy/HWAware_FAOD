@@ -1,5 +1,5 @@
 # Frequency-Adaptive Low-Latency Object Detection Using Events and Frames
-![License](https://img.shields.io/badge/license-MIT-yellow) ![Language](https://img.shields.io/badge/language-python3.11-brightgreen) ![cuda](http://img.shields.io/badge/cuda-11.8-red)
+![License](https://img.shields.io/badge/license-MIT-yellow) ![Language](https://img.shields.io/badge/language-python3.12-brightgreen) ![cuda](http://img.shields.io/badge/cuda-12.1-red)
    
 
 Official code repository for Frequency-Adaptive Low-Latency Object Detection Using Events and Frames.
@@ -56,22 +56,31 @@ Official code repository for Frequency-Adaptive Low-Latency Object Detection Usi
 ## Installation
 
 <details>
-<summary>(a) Environment</summary>
-   
-We recommend using cuda11.8 to avoid unnecessary environmental problems.
+<summary>(a) Environment — shared EfficientViT / FAOD setup</summary>
+
+This fork uses the existing `/opt/miniconda3/envs/pytorch` environment:
+Python 3.12.2, PyTorch 2.5.0 (CUDA 12.1), torchvision 0.20.0, and
+PyTorch Lightning 2.5.5. Setup on this server has been completed.
+
+```bash
+conda activate /opt/miniconda3/envs/pytorch
+
+# Reproduce the additions on the recorded baseline environment, if needed:
+python -m pip install --index-url https://pypi.org/simple \
+  -c docs/environment/pytorch-before.txt \
+  -r requirements/faod-added-lock.txt
+
+# Local compatibility checks (no dataset or W&B account needed):
+FAOD_STREAM_REFERENCE=tests/compatibility/fixtures/legacy_stream.json \
+  python -B -m pytest tests/compatibility/test_upgrade.py -q
 ```
-conda create -y -n faod python=3.11
 
-conda activate faod
+The runtime no longer requires TorchData or MMCV. Their used operations have
+compatible replacements in this repository. The legacy Python 3.11 / Torch 2.1.1
+installation recipe is superseded for this fork.
 
-pip install torch==2.1.1 torchvision==0.16.1 torchdata==0.7.1 torchaudio==2.1.1 --index-url https://download.pytorch.org/whl/cu118
-
-pip install pandas plotly opencv-python tabulate pycocotools bbox-visualizer StrEnum hydra-core einops torchdata tqdm numba h5py hdf5plugin lovely-tensors tensorboardX pykeops scikit-learn ipdb timm opencv-python-headless wandb==0.14.0 pytorch_lightning==1.8.6 numpy==1.26.3
-
-pip install openmim
-
-mim install mmcv
-```
+See [environment setup and verification](docs/ENVIRONMENT.md) for dependency
+versions, API changes, GPU tests, and the limits of the validation.
 
 </details>
 

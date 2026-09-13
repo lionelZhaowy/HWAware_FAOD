@@ -1,0 +1,3 @@
+WARNING: Ignoring invalid distribution ~vitop (/opt/miniconda3/envs/pytorch/lib/python3.12/site-packages)
+WARNING: Ignoring invalid distribution ~vitop (/opt/miniconda3/envs/pytorch/lib/python3.12/site-packages)
+qonnx 1.0.0 requires onnxruntime, which is not installed.

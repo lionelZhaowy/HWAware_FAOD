@@ -23,7 +23,7 @@ from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelSummary
 
 from config.modifier import dynamically_modify_train_config
-from modules.utils.fetch import fetch_data_module, fetch_model_module
+from modules.utils.fetch import fetch_data_module, fetc h_model_module
 
 import h5py
 import hdf5plugin

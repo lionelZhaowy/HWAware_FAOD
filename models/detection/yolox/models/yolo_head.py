@@ -41,8 +41,10 @@ class YOLOXHead(nn.Module):
         self.stems = nn.ModuleList()
         Conv = DWConv if depthwise else BaseConv
 
-        self.output_strides = None
-        self.output_grids = None
+        # Derived caches follow module device/dtype but never enter checkpoints.
+        self.register_buffer("output_strides", None, persistent=False)
+        self.register_buffer("output_grids", None, persistent=False)
+        self._output_hw = None
 
         # Automatic width scaling according to original YoloX channel dims.
         # in[-1]/out = 4/1
@@ -251,9 +253,12 @@ class YOLOXHead(nn.Module):
         batch_size = output.shape[0]
         n_ch = 5 + self.num_classes
         hsize, wsize = output.shape[-2:]
-        if grid.shape[2:4] != output.shape[2:4]:
-            yv, xv = torch.meshgrid([torch.arange(hsize), torch.arange(wsize)])
-            grid = torch.stack((xv, yv), 2).view(1, 1, hsize, wsize, 2).type(dtype)
+        if (grid.shape[2:4] != output.shape[2:4]
+                or grid.device != output.device or grid.dtype != output.dtype):
+            yv, xv = torch.meshgrid(
+                torch.arange(hsize, device=output.device, dtype=output.dtype),
+                torch.arange(wsize, device=output.device, dtype=output.dtype), indexing="ij")
+            grid = torch.stack((xv, yv), 2).view(1, 1, hsize, wsize, 2)
             self.grids[k] = grid
 
         output = output.view(batch_size, 1, n_ch, hsize, wsize)
@@ -266,21 +271,24 @@ class YOLOXHead(nn.Module):
         return output, grid
 
     def decode_outputs(self, outputs):
-        if self.output_grids is None:
-            assert self.output_strides is None
+        hw = tuple(tuple(shape) for shape in self.hw)
+        if (self.output_grids is None or self._output_hw != hw
+                or self.output_grids.device != outputs.device
+                or self.output_grids.dtype != outputs.dtype):
             dtype = outputs.dtype
             device = outputs.device
             grids = []
             strides = []
             for (hsize, wsize), stride in zip(self.hw, self.strides):
                 yv, xv = torch.meshgrid([torch.arange(hsize, device=device, dtype=dtype),
-                                         torch.arange(wsize, device=device, dtype=dtype)])
+                                         torch.arange(wsize, device=device, dtype=dtype)], indexing="ij")
                 grid = torch.stack((xv, yv), 2).view(1, -1, 2)
                 grids.append(grid)
                 shape = grid.shape[:2]
                 strides.append(torch.full((*shape, 1), stride, device=device, dtype=dtype))
             self.output_grids = torch.cat(grids, dim=1)
             self.output_strides = torch.cat(strides, dim=1)
+            self._output_hw = hw
         outputs = torch.cat([
             (outputs[..., 0:2] + self.output_grids) * self.output_strides,
             torch.exp(outputs[..., 2:4]) * self.output_strides,
@@ -501,7 +509,7 @@ class YOLOXHead(nn.Module):
         if mode == "cpu":
             cls_preds_, obj_preds_ = cls_preds_.cpu(), obj_preds_.cpu()
 
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.amp.autocast("cuda", enabled=False):
             cls_preds_ = (
                 cls_preds_.float().sigmoid_() * obj_preds_.float().sigmoid_()
             ).sqrt()

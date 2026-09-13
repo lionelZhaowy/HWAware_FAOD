@@ -131,9 +131,8 @@ def main(config: DictConfig):
         precision=config.training.precision,
         max_epochs=config.training.max_epochs,
         max_steps=config.training.max_steps,
-        strategy=strategy,
+        strategy=strategy if strategy is not None else "auto",
         sync_batchnorm=False if strategy is None else True,
-        move_metrics_to_cpu=False,
         benchmark=config.reproduce.benchmark,
         deterministic=config.reproduce.deterministic_flag,
     )

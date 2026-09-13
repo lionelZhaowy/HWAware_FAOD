@@ -1,0 +1,15 @@
+.........MMCV comparison max absolute errors: {'output': 0.0, 'dx': 7.152557373046875e-07, 'do': 4.76837158203125e-07, 'dw': 0.0}
+....
+=============================== warnings summary ===============================
+tests/compatibility/test_upgrade.py::test_logger_disabled_and_pickle
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+tests/compatibility/test_upgrade.py::test_logger_disabled_and_pickle
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+tests/compatibility/test_upgrade.py::test_logger_disabled_and_pickle
+  /home/zhaowenyao24/Conda_prj/Detection_DVS/HWAware_FAOD/loggers/wandb_logger.py:107: UserWarning: There is a wandb run already in progress and newly created instances of `WandbLogger` will reuse this run. If this is not desired, call `wandb.finish()` before instantiating `WandbLogger`.
+    rank_zero_warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+13 passed, 3 warnings in 9.24s

@@ -9,7 +9,7 @@ except ImportError:
 import numpy as np
 import torch
 from omegaconf import DictConfig
-from torchdata.datapipes.iter import IterDataPipe
+from torch.utils.data import IterDataPipe
 
 import random
 from data.ev_img_dataloader.labels import SparselyBatchedObjectLabels

@@ -3,8 +3,10 @@ from typing import Any, List, Optional
 import torch
 import torch.distributed as dist
 from torch.utils.data import DataLoader
-from torchdata.datapipes.iter import Concater, IterableWrapper, IterDataPipe, ZipperLongest
-from torchdata.datapipes.map import MapDataPipe
+from torch.utils.data import IterDataPipe
+from torch.utils.data.datapipes.iter import Concater, IterableWrapper
+from data.utils.datapipes import MapToIter, Repeat, ZipperLongest
+from torch.utils.data import MapDataPipe
 
 
 class ShardedStreamingDataPipe(IterDataPipe):
@@ -62,7 +64,7 @@ class ShardedStreamingDataPipe(IterDataPipe):
             batch_idx = next(batch_id_generator)
             zipped_streams[batch_idx].append(datapipe)
         for idx, streams in enumerate(zipped_streams):
-            zipped_streams[idx] = Concater(*(stream.to_iter_datapipe() for stream in streams))
+            zipped_streams[idx] = Concater(*(MapToIter(stream) for stream in streams))
         zipped_streams = ZipperLongest(*zipped_streams, fill_value=self.fill_value)
         return zipped_streams
 
@@ -88,7 +90,7 @@ class ShardedStreamingDataPipe(IterDataPipe):
         # its state based on the local worker id. We don't need the global worker id for that because the states
         # are saved in each DDP process (per GPU) separately and do not to communicate with each other.
 
-        worker_id_stream = IterableWrapper([local_worker_id]).cycle(count=None)
+        worker_id_stream = Repeat(IterableWrapper([local_worker_id]))
         zipped_stream = zipped_stream.zip(worker_id_stream)
 
         return iter(zipped_stream)

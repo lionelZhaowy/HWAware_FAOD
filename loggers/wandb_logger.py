@@ -13,17 +13,17 @@ import pytorch_lightning as pl
 import torch
 import torch.nn as nn
 
-pl_is_ge_1_6 = float(pl.__version__[:3]) >= 1.6
-assert pl_is_ge_1_6
+from packaging.version import Version
+
+assert Version(pl.__version__) >= Version("2.5")
 
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning.loggers.logger import rank_zero_experiment, Logger
 from pytorch_lightning.utilities.rank_zero import rank_zero_only, rank_zero_warn
-from pytorch_lightning.utilities.logger import _add_prefix, _convert_params, _flatten_dict, _sanitize_callable_params
+from lightning_fabric.utilities.logger import _add_prefix, _convert_params, _flatten_dict, _sanitize_callable_params
 
 import wandb
-from wandb.sdk.lib import RunDisabled
-from wandb.wandb_run import Run
+from wandb.sdk.wandb_run import Run
 
 
 class WandbLogger(Logger):
@@ -71,7 +71,6 @@ class WandbLogger(Logger):
         self._public_run = None
 
         # start wandb run (to create an attach_id for distributed modes)
-        wandb.require("service")
         _ = self.experiment
 
     def get_checkpoint(self, artifact_name: str, artifact_filepath: Optional[Path] = None) -> Path:
@@ -120,13 +119,13 @@ class WandbLogger(Logger):
                     self._experiment.config.update(self._config_args, allow_val_change=True)
 
                 # define default x-axis
-                if isinstance(self._experiment, (Run, RunDisabled)) and getattr(
+                if isinstance(self._experiment, Run) and getattr(
                         self._experiment, "define_metric", None
                 ):
                     self._experiment.define_metric(self.STEP_METRIC)
                     self._experiment.define_metric("*", step_metric=self.STEP_METRIC, step_sync=True)
 
-        assert isinstance(self._experiment, (Run, RunDisabled))
+        assert isinstance(self._experiment, Run)
         return self._experiment
 
     def watch(self, model: nn.Module, log: str = 'all', log_freq: int = 100, log_graph: bool = True):
@@ -226,7 +225,7 @@ class WandbLogger(Logger):
     def _get_public_run(self):
         if self._public_run is None:
             experiment = self.experiment
-            runpath = experiment._entity + '/' + experiment._project + '/' + experiment._run_id
+            runpath = "/".join((experiment.entity, experiment.project, experiment.id))
             api = wandb.Api()
             self._public_run = api.run(path=runpath)
         return self._public_run
@@ -265,7 +264,8 @@ class WandbLogger(Logger):
         # remove checkpoints with undefined (None) score
         checkpoints = [x for x in checkpoints if x[2] is not None]
 
-        num_ckpt_logged_before = self._num_logged_artifact()
+        online = self.experiment.settings.mode == "online"
+        num_ckpt_logged_before = self._num_logged_artifact() if online else 0
         num_new_cktps = len(checkpoints)
 
         if num_new_cktps == 0:
@@ -305,6 +305,9 @@ class WandbLogger(Logger):
             self.experiment.log_artifact(artifact, aliases=aliases)
             # remember logged models - timestamp needed in case filename didn't change (last.ckpt or custom name)
             self._logged_model_time[path] = time_
+
+        if not online:
+            return
 
         timeout = 20
         time_spent = 0
