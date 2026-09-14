@@ -7,6 +7,14 @@ Official code repository for Frequency-Adaptive Low-Latency Object Detection Usi
   <img src="readme/imgs/framework.png" width="750">
 </p>
 
+## Getting Started in This Fork
+
+- [新对话接手：上下文与工作进度](docs/PROJECT_HANDOFF.md)：先读当前阶段、后台任务和已完成验证；根目录 `AGENTS.md` 为 Agent 入口。
+
+- [FAOD 工程入门与论文映射（中文）](docs/FAOD_PROJECT_GUIDE.md)：模型、事件表征、时序数据加载、训练、评估、调参及 EfficientViT / PEOD 移植边界。
+- [全部源码与配置索引](docs/FAOD_SOURCE_INDEX.md)：按目录定位默认与备用实现。
+- [验证与短训练操作手册](docs/VALIDATION_AND_SMOKE_TRAINING.md)：使用本地权重建立基线，再跑通训练。
+
 ## Important Notes
 :star: The advantages of this repository in dealing object detection using both Events and Frames
 - We follow the data format of [RVT](https://github.com/uzh-rpg/RVT), and all datasets are now easier to handle, smaller, and faster to read and write. We appreciate the excellent work of
@@ -135,6 +143,21 @@ Following these [instructions](https://github.com/Hatins/FAOD-master/blob/main/r
   </tr>
 </table>
 
+The three published weights are stored locally in `checkpoints/`:
+
+| Dataset / variant | Local checkpoint |
+| --- | --- |
+| PKU-DAVIS-SOD | `checkpoints/pku_fusion.ckpt` |
+| PKU-DAVIS-SOD (Time Shift) | `checkpoints/pku_fusion_time_shift.ckpt` |
+| DSEC-Detection | `checkpoints/dsec.ckpt` |
+
+`validation.py` and `demo.py` select `checkpoints/${dataset.name}.ckpt` by default.
+For Time Shift, pass `checkpoint=checkpoints/pku_fusion_time_shift.ckpt`.
+Relative checkpoint paths resolve from the project root, including when Hydra
+changes the working directory. Absolute paths remain supported.
+See [checkpoint details and commands](checkpoints/README.md) and
+[download hashes](checkpoints/manifest.json).
+
 </details>
 
 ## Validation and Training
@@ -142,9 +165,9 @@ Following these [instructions](https://github.com/Hatins/FAOD-master/blob/main/r
 <details>
 <summary>(a) Validation with pre-trained models</summary>
    
-Define the ``DATASET ['pku_fusion', 'dsec']``, ``DATA_PATH``, ``CHECKPOINT``, ``use_test_set [True, False]``, and then run the following command:
+Define ``DATASET ['pku_fusion', 'dsec']``, ``DATA_PATH`` and ``use_test_set [True, False]``. The matching local checkpoint is selected by default; optionally override it with ``checkpoint={CHECKPOINT}``:
 ```python
-python validation.py dataset={DATASET} dataset.path={DATA_PATH} checkpoint={CHECKPOINT} use_test_set={use_test_set} +experiment/{DATASET}='base.yaml'
+python validation.py dataset={DATASET} dataset.path={DATA_PATH} use_test_set={use_test_set} +experiment/{DATASET}='base.yaml'
 ```
 Other settings like ``use_test_set``, ``training.precision``, ``batch_size.eval``, ``hardware.num_workers`` can be set in file ``config/val.yaml`` 
 and ``config/experiment/{DATASET}/default.yaml`` conveniently.

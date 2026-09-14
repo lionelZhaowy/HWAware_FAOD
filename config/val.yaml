@@ -4,7 +4,9 @@ defaults:
   - model: rnndet
   - _self_
 
-checkpoint: ???
+# Relative checkpoint paths are resolved from the project root.
+# Override for Time Shift: checkpoint=checkpoints/pku_fusion_time_shift.ckpt
+checkpoint: checkpoints/${dataset.name}.ckpt
 use_test_set: True
 hardware:
   num_workers:

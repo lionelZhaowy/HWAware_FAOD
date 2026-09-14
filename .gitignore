@@ -1,0 +1,87 @@
+# Local datasets, downloaded weights, and experiment output.
+# Keep these whole directories local (user preference).
+logs/
+checkpoints/
+wandb/
+/outputs/
+/multirun/
+/lightning_logs/
+/results/
+/datasets/
+/lab_dataset/
+# /data/ is source code in FAOD: do NOT ignore it.
+
+# Python caches, tests, and coverage output.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Local environments and build products.
+/.venv/
+/venv/
+/env/
+/.conda/
+/build/
+/dist/
+*.egg-info/
+.eggs/
+*.so
+*.o
+*.a
+
+# Generated Hydra configuration snapshots (not config/ source YAML).
+.hydra/
+
+# Model/export binaries and dataset archives.
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.engine
+*.plan
+*.safetensors
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.tar.bz2
+*.tar.xz
+*.7z
+*.rar
+*.h5
+*.hdf5
+*.aedat
+*.aedat4
+*.bag
+# Do not globally ignore .npy/.npz: small fixtures may be versioned.
+
+# Downloads, extraction fragments, and transient logs.
+*.part
+*.faod-extract-part
+*.log
+*.pid
+*.tmp
+*.swp
+*.swo
+*~
+events.out.tfevents.*
+# Curated compatibility logs are reproducibility evidence, not live run logs.
+!docs/environment/*.log
+
+# Machine-local editor settings, credentials, and OS metadata.
+/.vscode/
+/.idea/
+.env
+.env.*
+!.env.example
+!.env.template
+.netrc
+.DS_Store
+Thumbs.db

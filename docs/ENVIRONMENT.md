@@ -1,5 +1,7 @@
 # FAOD 与 EfficientViT 共用环境配置记录
 
+2026-09-13 更新：已完成 3 个完整 PKU Test 序列的 FP32 端到端试运行，并修复 Lightning checkpoint 类方法调用问题。设置、指标与范围见 [试运行结果](PKU_SMOKE_TEST_RESULTS.md)。
+
 实施日期：2026-09-13。FAOD 基线：`e8666ca536850807173502e6764423135194cf7f`。
 环境：`/opt/miniconda3/envs/pytorch`。已完成安装与兼容性修改。
 
@@ -108,7 +110,7 @@ OMP_NUM_THREADS=1 python -B tests/compatibility/smoke_training.py --device cuda:
 - 两种精度都检查 strict state_dict 加载和训练结束迁移到 CPU 后的推理，预测形状 `[1, 126, 13]`、数值有限。
 - [共享环境检查](environment/shared-environment-tests.log)：train / validation / demo 入口导入、HDF5 Blosc 压缩往返、用户实际 `HW_Aware_efficientvit` 的 B1 CPU 前向/反向、mqbench_export / ONNX / ONNX Runtime 导入全部通过。
 
-以上验证支持已修改 API 和核心训练链路的兼容性；不代表真实数据集完整训练后的精度或速度已复现。尚未进行真实数据集验证/测试循环、多 GPU DDP、在线 W&B 上传、旧发布模型整包恢复、量化导出与硬件部署。FP16 与旧 MMCV 的整网训练轨迹也未作逐步对照。
+以上验证支持已修改 API 和核心训练链路的兼容性；不代表真实数据集完整训练后的精度或速度已复现。尚未进行真实数据集验证/测试循环、多 GPU DDP、在线 W&B 上传、发布 checkpoint 的优化器续训、量化导出与硬件部署。FP16 与旧 MMCV 的整网训练轨迹也未作逐步对照。
 
 ## 已有告警与可选分支
 
@@ -117,3 +119,10 @@ OMP_NUM_THREADS=1 python -B tests/compatibility/smoke_training.py --device cuda:
 BasicSR 的 `fused_act` / `upfirdn2d` 可选扩展会提示无法导入；当前 FAOD 主路径不调用这些算子，未编译它们。`cross_mamba` 的 Mamba 扩展和 S5 调试示例的 lovely_tensors 也不属于当前默认模型运行依赖；这些备用分支未被声明为可运行。Python 3.12 自带 StrEnum，不需要补装其兼容包。
 
 本次未移植 EfficientViT 到 FAOD、未重新处理 PEOD；下一步可在已配置的同一环境中开展这两项工作。
+
+## 发布权重补充验证
+
+2026-09-13 随后已下载 README 的三个发布 checkpoint，并通过当前 Lightning 2.5.5
+入口严格加载及合成 CPU 推理。原始文件保持不变，旧版元数据在加载时自动迁移。
+验证记录见 [checkpoints/README.md](../checkpoints/README.md)；此项不包含发布
+checkpoint 的优化器续训或真实数据集 mAP 复测。

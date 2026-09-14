@@ -23,12 +23,15 @@ from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelSummary
 
 from config.modifier import dynamically_modify_train_config
+from utils.checkpoints import resolve_checkpoint_path
 from modules.utils.fetch import fetch_data_module, fetch_model_module
 
 
 @hydra.main(config_path='config', config_name='val', version_base='1.2')
 def main(config: DictConfig):
     dynamically_modify_train_config(config)
+    ckpt_path = resolve_checkpoint_path(config.checkpoint)
+    config.checkpoint = str(ckpt_path)
     # Just to check whether config can be resolved
     OmegaConf.to_container(config, resolve=True, throw_on_missing=True)
 
@@ -51,14 +54,13 @@ def main(config: DictConfig):
     # ---------------------
     # Logging and Checkpoints
     logger = get_wandb_logger(config)
-    ckpt_path = Path(config.checkpoint)
 
     # ---------------------
     # Model
     # ---------------------
 
     module = fetch_model_module(config=config)
-    module = module.load_from_checkpoint(str(ckpt_path), **{'full_config': config})
+    module = type(module).load_from_checkpoint(str(ckpt_path), **{'full_config': config})
 
     # ---------------------
     # Callbacks and Misc

@@ -23,7 +23,8 @@ from pytorch_lightning.loggers import CSVLogger
 from pytorch_lightning.callbacks import ModelSummary
 
 from config.modifier import dynamically_modify_train_config
-from modules.utils.fetch import fetch_data_module, fetc h_model_module
+from utils.checkpoints import resolve_checkpoint_path
+from modules.utils.fetch import fetch_data_module, fetch_model_module
 
 import h5py
 import hdf5plugin
@@ -39,6 +40,8 @@ def sort_key(filename):
 @hydra.main(config_path='config', config_name='val', version_base='1.2')
 def main(config: DictConfig):
     dynamically_modify_train_config(config)
+    ckpt_path = resolve_checkpoint_path(config.checkpoint)
+    config.checkpoint = str(ckpt_path)
     # Just to check whether config can be resolved
     OmegaConf.to_container(config, resolve=True, throw_on_missing=True)
 
@@ -50,10 +53,8 @@ def main(config: DictConfig):
     assert isinstance(gpus, int), 'no more than 1 GPU supported'
     gpus = 'cuda:0'
 
-    ckpt_path = Path(config.checkpoint)
-
     module = fetch_model_module(config=config)
-    module = module.load_from_checkpoint(str(ckpt_path), **{'full_config': config})
+    module = type(module).load_from_checkpoint(str(ckpt_path), **{'full_config': config})
     module.set_model_to_gpus(gpus)
     module = module.eval()
 
