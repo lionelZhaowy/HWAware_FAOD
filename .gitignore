@@ -4,6 +4,8 @@ logs/
 checkpoints/
 wandb/
 /outputs/
+# Codex-generated local audit snapshots and intermediate files.
+/codex_artifacts/
 /multirun/
 /lightning_logs/
 /results/
@@ -72,8 +74,6 @@ coverage.xml
 *.swo
 *~
 events.out.tfevents.*
-# Curated compatibility logs are reproducibility evidence, not live run logs.
-!docs/environment/*.log
 
 # Machine-local editor settings, credentials, and OS metadata.
 /.vscode/

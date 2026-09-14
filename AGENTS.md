@@ -5,7 +5,7 @@
 ## 用户偏好与当前阶段
 
 - 用中文沟通，围绕当前请求实际推进工作；常规实现选择无需反复征求确认。
-- 当前阶段是原 FAOD 的环境适配与基线验证。完整 Val、真实数据短训练尚待执行；后续算法移植根据用户最新指令推进。
+- 当前阶段是原 FAOD 的环境适配与基线验证。真实数据 FP32 100 步短训练和 checkpoint 回读已通过，完整 Val 与真实数据 AMP 训练尚待执行；后续算法移植根据用户最新指令推进。
 - 共用环境 `/opt/miniconda3/envs/pytorch`，尽量保留已验证的 EfficientViT 软件栈，不随意升级/降级核心包。
 - 后续移植采用用户的 `HW_Aware_efficientvit`，v1.0/v1.1 是备份；不是其他同名 EfficientViT。
 - [原算法需求](docs/ORIGINAL_ALGORITHM_BRIEF.md)是长期目标和约束，不代表要求新对话立即实施全部改造。以最新用户任务范围为准。
@@ -15,7 +15,7 @@
 - GPU 共享，执行前检查占用，使用空闲 GPU 并记录物理/进程内编号；不能终止其他用户任务。
 - PEOD 保留原位；不要把旧处理数据 `DSEC_DET` 迁移任务与新下载的 FAOD DSEC 数据包混淆。
 - 迁移、下载、续解压可能后台运行。先检查日志、状态及进程，避免重复启动或同时写同一目录。
-- 当前仅完成三个完整 Test 序列的 FP32 试运行；不要称为完整 Val、论文精度复现或训练收敛。
+- 当前已完成三个 Test 序列 FP32 试运行、真实数据 FP32 100 步短训练及单 Val 序列 checkpoint 回读；不要称为完整 Val、论文精度复现或训练收敛。
 - 仓库有用户修改和未提交成果，保留现状；不要自动重置、清理、提交或推送。
-- 根 `.gitignore` 保持 logs/checkpoints/wandb 不上传；需要共享的精简配置、校验清单和结果放 docs。`data/` 是源代码目录，不能忽略。
+- 根 `.gitignore` 保持 logs/checkpoints/wandb 不上传；需要共享的 Markdown 结论和操作说明放 docs；JSON、日志、环境快照等本机中间产物放 codex_artifacts，不随 Git 同步；可复现依赖约束放 requirements。`data/` 是源代码目录，不能忽略。
 - `.gitignore` 不会移除已跟踪文件；本轮没有执行 git rm --cached。清理历史产物是独立操作。

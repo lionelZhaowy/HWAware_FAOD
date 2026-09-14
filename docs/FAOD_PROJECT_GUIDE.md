@@ -1,15 +1,17 @@
 # FAOD 工程入门：从论文到代码、数据和实验
 
+2026-09-14 更新：PKU 全量解压已完成，原模型真实数据 FP32 100 步训练、参数更新核对、checkpoint 保存与单序列 Val 回读均已通过。详细配置、兼容性修复及限制见 [短训练结果](PKU_TRAIN_SMOKE_RESULTS.md)。
+
 这份指南面向首次接手 FAOD 的读者，阅读目标是能回答：模型究竟在哪里定义、一份样本经过哪些变换、loss 从哪里来、验证指标如何产生，以及改一个配置会影响什么。
 
 解析对象为当前 `HWAware_FAOD` 工作区，Git 基线 `0e6cf34322c04a0a0d0bf498e57f55d21cb1a701`，包含此前环境适配和本地 checkpoint 路径修改。日期：2026-09-13。论文参照作者的 [FAOD，arXiv:2412.04149v1](https://arxiv.org/html/2412.04149v1)。**以下具体行为以当前源码为准；论文的概念图、代码中的类名和实际执行路径需要分别核对。**
 
 配套资料：
 
-- [全部源码与配置索引](FAOD_SOURCE_INDEX.md)：279 个 Python 文件和 25 个 YAML 配置的入口索引，包含备用实现。
+- [全部源码与配置索引](FAOD_SOURCE_INDEX.md)：280 个 Python 文件和 25 个 YAML 配置的入口索引，包含备用实现。
 - [实际验证与短训练命令](VALIDATION_AND_SMOKE_TRAINING.md)：待数据就绪后的操作手册。
 - [环境适配记录](ENVIRONMENT.md)、[下载方法](DATASET_DOWNLOAD.md)、[本地权重](../checkpoints/README.md)。
-- [PKU 逐层形状记录](reference/pku_model_trace.json)、[DSEC 逐层形状记录](reference/dsec_model_trace.json)：本轮在 CPU 上实际运行默认模型得到。
+- [PKU 逐层形状记录](../codex_artifacts/reference/pku_model_trace.json)、[DSEC 逐层形状记录](../codex_artifacts/reference/dsec_model_trace.json)：本轮在 CPU 上实际运行默认模型得到。
 
 建议第一次依次阅读 1–8 节；准备跑实验时读 9–12 节；准备改模型时读 13–16 节。全工程索引用于定位文件，不必先逐行读完所有备用库。
 
@@ -818,7 +820,7 @@ python -B scripts/inspect_faod_model.py --dataset pku_fusion --output /tmp/faod-
 python -B scripts/inspect_faod_model.py --dataset dsec --output /tmp/faod-dsec-shapes.json
 ```
 
-已有记录可直接打开：[PKU](reference/pku_model_trace.json)、[DSEC](reference/dsec_model_trace.json)。用它练习回答：为什么第一层特征是 64 通道、为什么是四组状态、为什么 head 候选数比最终框数大得多。
+已有记录可直接打开：[PKU](../codex_artifacts/reference/pku_model_trace.json)、[DSEC](../codex_artifacts/reference/dsec_model_trace.json)。用它练习回答：为什么第一层特征是 64 通道、为什么是四组状态、为什么 head 候选数比最终框数大得多。
 
 ### 15.2 建议的断点顺序
 

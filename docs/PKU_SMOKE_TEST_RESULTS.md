@@ -47,8 +47,8 @@ module = type(module).load_from_checkpoint(str(ckpt_path), **{'full_config': con
 ## 证据与重现
 
 - [完整运行日志](../logs/pku_smoke_three/evaluation.log)
-- [机器可读结果与完整命令（可提交快照）](reference/pku_smoke_three_results.json)
-- [输入文件 CRC 清单（可提交快照）](reference/pku_smoke_three_data_verification.json)
+- [机器可读结果与完整命令（本机快照，不随 Git 同步）](../codex_artifacts/reference/pku_smoke_three_results.json)
+- [输入文件 CRC 清单（本机快照，不随 Git 同步）](../codex_artifacts/reference/pku_smoke_three_data_verification.json)
 - [首次运行的类方法错误](../logs/pku_smoke_three/attempt1_classmethod_error.log)
 - W&B 离线目录：`wandb/offline-run-20260913_225616-a34rcdn8`。
 

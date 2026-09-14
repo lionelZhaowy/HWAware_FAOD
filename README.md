@@ -9,6 +9,8 @@ Official code repository for Frequency-Adaptive Low-Latency Object Detection Usi
 
 ## Getting Started in This Fork
 
+- [Codex 中间产物管理](docs/CODEX_ARTIFACTS.md)：Markdown 留在 docs，本机快照集中到 codex_artifacts 并忽略。
+
 - [新对话接手：上下文与工作进度](docs/PROJECT_HANDOFF.md)：先读当前阶段、后台任务和已完成验证；根目录 `AGENTS.md` 为 Agent 入口。
 
 - [FAOD 工程入门与论文映射（中文）](docs/FAOD_PROJECT_GUIDE.md)：模型、事件表征、时序数据加载、训练、评估、调参及 EfficientViT / PEOD 移植边界。
@@ -75,7 +77,7 @@ conda activate /opt/miniconda3/envs/pytorch
 
 # Reproduce the additions on the recorded baseline environment, if needed:
 python -m pip install --index-url https://pypi.org/simple \
-  -c docs/environment/pytorch-before.txt \
+  -c requirements/pytorch-baseline-constraints.txt \
   -r requirements/faod-added-lock.txt
 
 # Local compatibility checks (no dataset or W&B account needed):

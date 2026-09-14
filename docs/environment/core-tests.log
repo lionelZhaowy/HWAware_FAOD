@@ -1,3 +1,0 @@
-.........MMCV comparison max absolute errors: {'output': 0.0, 'dx': 7.152557373046875e-07, 'do': 4.76837158203125e-07, 'dw': 0.0}
-.
-10 passed, 2 deselected in 9.19s

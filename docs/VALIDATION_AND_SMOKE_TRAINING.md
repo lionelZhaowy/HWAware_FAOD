@@ -1,14 +1,16 @@
 # 正式修改前：原 FAOD 验证与短训练
 
+2026-09-14 更新：PKU 全量解压已完成，原模型真实数据 FP32 100 步训练、参数更新核对、checkpoint 保存与单序列 Val 回读均已通过。详细配置、兼容性修复及限制见 [短训练结果](PKU_TRAIN_SMOKE_RESULTS.md)。
+
 2026-09-13 更新：已完成 3 个完整 PKU Test 序列的 FP32 端到端试运行，并修复 Lightning checkpoint 类方法调用问题。设置、指标与范围见 [试运行结果](PKU_SMOKE_TEST_RESULTS.md)。
 
 建议顺序：已发布权重的完整 Val → 相同设置下的 FP16 Val → 原模型 100 步短训练 → 回读新 checkpoint。以最先完成下载的普通 PKU-DAVIS-SOD 为起点，不必等 DSEC 和 EOD200 全部下载。此流程不移植 EfficientViT，也不改 PEOD。
 
-目前已经通过：依赖/算子回归、三个发布权重的 strict 加载与合成 CPU 推理、合成序列 FP32/FP16 训练及恢复。下一阶段要增加真实 HDF5 数据加载、时序状态、后处理、AP 评估和训练入口的组合验证。以下命令的 Hydra 配置已解析检查，但真实数据运行尚未执行。
+目前已经通过：依赖/算子回归、三个发布权重的 strict 加载与合成 CPU 推理、合成序列 FP32/FP16 训练及恢复。真实数据 FP32 短训练与保存后回读已通过；下述完整 Val 和真实数据 FP16 对照尚未执行。
 
 ## 1. 数据就绪与共同设置
 
-服务器更新：PKU 压缩包已下载并校验完成；已安排在 DSEC 迁出 SSD 后自动续解压到 `/home/zhaowenyao24/Conda_prj/lab_dataset/FAOD_PKU_DAVIS_SOD/freq_1_1`。任务监控、恢复方法和提前单序列测试命令见 [PKU 自动解压](PKU_AUTO_EXTRACTION.md)。下述 `/data` 解压路径是原通用方案，当前服务器正式运行请将 `FAOD_PKU_ROOT` 设置为上述 SSD 路径。
+服务器更新：DSEC 已迁出 SSD；PKU 已于 2026-09-14 10:47:54 完整解压到 `/home/zhaowenyao24/Conda_prj/lab_dataset/FAOD_PKU_DAVIS_SOD/freq_1_1`。任务监控、恢复方法和提前单序列测试命令见 [PKU 自动解压](PKU_AUTO_EXTRACTION.md)。下述 `/data` 解压路径是原通用方案，当前服务器正式运行请将 `FAOD_PKU_ROOT` 设置为上述 SSD 路径。
 
 等待 `/data/lab_dataset/RGB_DVS_DET/FAOD_PKU_DAVIS_SOD.zip` 出现；`.zip.part` 表示尚未完成下载或校验。完整包经下载程序校验后再解压到 `/data`，先用 `unzip -l` 确认归档目录结构，避免把数据解到空间不足的工程分区。
 
@@ -31,7 +33,7 @@ freq_1_1/
 ```bash
 conda activate /opt/miniconda3/envs/pytorch
 cd /home/zhaowenyao24/Conda_prj/Detection_DVS/HWAware_FAOD
-export FAOD_PKU_ROOT='/实际解压后的路径/freq_1_1'
+export FAOD_PKU_ROOT='/home/zhaowenyao24/Conda_prj/lab_dataset/FAOD_PKU_DAVIS_SOD/freq_1_1'
 export WANDB_MODE=offline
 mkdir -p logs
 set -o pipefail
@@ -119,7 +121,7 @@ python train.py \
 - 验证产生 `val/AP` 后，原 ModelCheckpoint 回调才有监控指标，可以保存 best/last。这里只验证部分 Val，其 AP 不能与完整 Val 比较。
 - 完成位置和文件名以训练日志为准。原回调的 last 文件名类似 `last_epoch=000-step=100.ckpt`，不是固定 `last.ckpt`；W&B 离线运行也会保存本地 checkpoint。
 
-验收不以 loss 单调下降为标准，而是确认：完成预期优化步骤、loss/梯度正常、模型参数实际改变、AdamW 状态存在、验证结束、checkpoint 保存成功。然后使用步骤 2 的 Val 命令，把 `checkpoint` 改成刚保存文件的绝对路径，确认新文件能够回读评估。
+验收不以 loss 单调下降为标准，而是确认：完成预期优化步骤、loss/梯度正常、模型参数实际改变、AdamW 状态存在、验证结束、checkpoint 保存成功。然后使用步骤 2 的 Val 命令，把 `checkpoint` 改成刚保存文件的路径，确认新文件能够回读评估。注意生成的文件名包含 `=`，必须使用 Hydra 内部引号，例如 `'checkpoint="FAOD/tvj1jsxb/checkpoints/last_epoch=000-step=100.ckpt"'`。
 
 FP32 全链路通过后，再做一轮独立的 `16-mixed` 短训练；留意 GradScaler 可能跳过初始溢出更新，不能只看 global_step 就判断更新成功。已有合成训练测试专门检查过有效梯度与 optimizer state。
 

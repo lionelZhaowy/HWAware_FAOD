@@ -1,5 +1,7 @@
 # FAOD 与 EfficientViT 共用环境配置记录
 
+2026-09-14 更新：PKU 全量解压已完成，原模型真实数据 FP32 100 步训练、参数更新核对、checkpoint 保存与单序列 Val 回读均已通过。详细配置、兼容性修复及限制见 [短训练结果](PKU_TRAIN_SMOKE_RESULTS.md)。
+
 2026-09-13 更新：已完成 3 个完整 PKU Test 序列的 FP32 端到端试运行，并修复 Lightning checkpoint 类方法调用问题。设置、指标与范围见 [试运行结果](PKU_SMOKE_TEST_RESULTS.md)。
 
 实施日期：2026-09-13。FAOD 基线：`e8666ca536850807173502e6764423135194cf7f`。
@@ -7,7 +9,7 @@
 
 ## 环境和依赖
 
-保留现有 EfficientViT 计算与导出栈，补齐 FAOD 依赖。对安装前记录的 169 个包做标准化版本比较，均未改变；新增 45 个直接或间接依赖。见 [版本核对结果](environment/version-verification.json)。
+保留现有 EfficientViT 计算与导出栈，补齐 FAOD 依赖。对安装前记录的 169 个包做标准化版本比较，均未改变；新增 45 个直接或间接依赖。见 [版本核对结果](../codex_artifacts/environment/version-verification.json)。
 
 | 组件 | 实际使用版本 | 处理 |
 | --- | --- | --- |
@@ -33,12 +35,12 @@
 conda activate /opt/miniconda3/envs/pytorch
 # 当前服务器已经完成；以下用于在同一基线环境重现增量安装。
 python -m pip install --index-url https://pypi.org/simple \
-  -c docs/environment/pytorch-before.txt \
+  -c requirements/pytorch-baseline-constraints.txt \
   -r requirements/faod-added-lock.txt
 ```
 
 本次安装使用官方 PyPI，因为默认镜像出现证书错误；未改全局 pip 配置。
-[安装前版本约束](environment/pytorch-before.txt)、[安装前 Conda 清单](environment/conda-before.txt)、[安装后 pip freeze](environment/pytorch-after.txt)、[pip 安装报告](environment/install-report.json) 和 [安装日志](environment/install.log) 可供核查。Conda 包的 freeze 可能使用 `@ file://...` 来源表示；版本核对使用包元数据并按 PEP 440 标准化，避免把来源或版本拼写差异当成版本变更。
+[安装前版本约束](../requirements/pytorch-baseline-constraints.txt)、[安装前 Conda 清单](../codex_artifacts/environment/conda-before.txt)、[安装后 pip freeze](../codex_artifacts/environment/pytorch-after.txt)、[pip 安装报告](../codex_artifacts/environment/install-report.json) 和 [安装日志](../codex_artifacts/environment/install.log) 可供核查。Conda 包的 freeze 可能使用 `@ file://...` 来源表示；版本核对使用包元数据并按 PEP 440 标准化，避免把来源或版本拼写差异当成版本变更。
 
 ## 代码适配与功能契约
 
@@ -77,7 +79,7 @@ FAOD 虽将封装命名为 `DCNv2Pack`，实际调用的是**无 modulation mask
 
 ## 验证结果与重跑
 
-[兼容性回归日志](environment/compatibility-tests.log)：13 项全部通过。
+[兼容性回归日志](../codex_artifacts/environment/compatibility-tests.log)：13 项全部通过。
 
 - 新旧 concat / sharded 数据管线在 0 和 2 个 worker 下逐项一致；另外检查样本覆盖与 rank/worker 分配。
 - DCN 与独立的双精度 grid_sample 参考实现比较前向及输入、偏移、权重梯度。
@@ -105,16 +107,16 @@ OMP_NUM_THREADS=1 python -B tests/compatibility/smoke_training.py --device cuda:
 
 短训练使用实际 Darknet + LSTM + 对齐 DCN + cross-CBAM + YOLOX 模型（20,265,335 参数），合成 batch=1、2 个时刻、64×96、20 通道事件与 3 通道 RGB；仅在测试配置中缩小分辨率、关闭 scheduler/训练指标，未更改实际训练配置或数据。
 
-- [FP32](environment/training-fp32.log)：2 步训练，保存模型和 AdamW 状态，恢复至第 3 步；3 次有限梯度更新，推理通过。
-- [FP16 mixed](environment/training-fp16.log)：12 步训练并恢复至第 13 步；共 2 次有限梯度更新，推理通过。这个合成测试的 GradScaler 在前 11 步跳过溢出的更新并自动降低缩放值；测试明确断言优化器已有状态、出现有限梯度，避免仅凭 global_step 判断成功。未修改默认 scaler 策略。
+- [FP32](../codex_artifacts/environment/training-fp32.log)：2 步训练，保存模型和 AdamW 状态，恢复至第 3 步；3 次有限梯度更新，推理通过。
+- [FP16 mixed](../codex_artifacts/environment/training-fp16.log)：12 步训练并恢复至第 13 步；共 2 次有限梯度更新，推理通过。这个合成测试的 GradScaler 在前 11 步跳过溢出的更新并自动降低缩放值；测试明确断言优化器已有状态、出现有限梯度，避免仅凭 global_step 判断成功。未修改默认 scaler 策略。
 - 两种精度都检查 strict state_dict 加载和训练结束迁移到 CPU 后的推理，预测形状 `[1, 126, 13]`、数值有限。
-- [共享环境检查](environment/shared-environment-tests.log)：train / validation / demo 入口导入、HDF5 Blosc 压缩往返、用户实际 `HW_Aware_efficientvit` 的 B1 CPU 前向/反向、mqbench_export / ONNX / ONNX Runtime 导入全部通过。
+- [共享环境检查](../codex_artifacts/environment/shared-environment-tests.log)：train / validation / demo 入口导入、HDF5 Blosc 压缩往返、用户实际 `HW_Aware_efficientvit` 的 B1 CPU 前向/反向、mqbench_export / ONNX / ONNX Runtime 导入全部通过。
 
 以上验证支持已修改 API 和核心训练链路的兼容性；不代表真实数据集完整训练后的精度或速度已复现。尚未进行真实数据集验证/测试循环、多 GPU DDP、在线 W&B 上传、发布 checkpoint 的优化器续训、量化导出与硬件部署。FP16 与旧 MMCV 的整网训练轨迹也未作逐步对照。
 
 ## 已有告警与可选分支
 
-`pip check` 仍报告安装前已有的 `qonnx 1.0.0 requires onnxruntime`，因为安装的是 `onnxruntime-gpu` 发行包；ONNX Runtime 模块可正常导入。还保留了已有的 `~vitop` 无效发行目录告警。未添加另一份 CPU ONNX Runtime 或改动已有导出栈，详见 [pip check 记录](environment/pip-check.txt)。
+`pip check` 仍报告安装前已有的 `qonnx 1.0.0 requires onnxruntime`，因为安装的是 `onnxruntime-gpu` 发行包；ONNX Runtime 模块可正常导入。还保留了已有的 `~vitop` 无效发行目录告警。未添加另一份 CPU ONNX Runtime 或改动已有导出栈，详见 [pip check 记录](../codex_artifacts/environment/pip-check.txt)。
 
 BasicSR 的 `fused_act` / `upfirdn2d` 可选扩展会提示无法导入；当前 FAOD 主路径不调用这些算子，未编译它们。`cross_mamba` 的 Mamba 扩展和 S5 调试示例的 lovely_tensors 也不属于当前默认模型运行依赖；这些备用分支未被声明为可运行。Python 3.12 自带 StrEnum，不需要补装其兼容包。
 

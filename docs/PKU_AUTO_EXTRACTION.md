@@ -1,8 +1,10 @@
 # DSEC 迁移后的 PKU 自动续解压
 
+2026-09-14 更新：PKU 全量解压已完成，原模型真实数据 FP32 100 步训练、参数更新核对、checkpoint 保存与单序列 Val 回读均已通过。详细配置、兼容性修复及限制见 [短训练结果](PKU_TRAIN_SMOKE_RESULTS.md)。
+
 2026-09-13 更新：已完成 3 个完整 PKU Test 序列的 FP32 端到端试运行，并修复 Lightning checkpoint 类方法调用问题。设置、指标与范围见 [试运行结果](PKU_SMOKE_TEST_RESULTS.md)。
 
-2026-09-13 已启动独立后台任务，脚本为 [wait_and_extract_pku.py](../scripts/wait_and_extract_pku.py)。启动 PID 为 430641；实际状态以 `logs/pku_auto_extract/status.json` 为准。无需保持 SSH 或 tmux 连接，但服务器重启后需重新启动任务。
+以下保留原运行/恢复说明：2026-09-13 已启动独立后台任务，脚本为 [wait_and_extract_pku.py](../scripts/wait_and_extract_pku.py)。启动 PID 为 430641；实际状态以 `logs/pku_auto_extract/status.json` 为准。无需保持 SSH 或 tmux 连接，但服务器重启后需重新启动任务。
 
 ## 触发条件与行为
 

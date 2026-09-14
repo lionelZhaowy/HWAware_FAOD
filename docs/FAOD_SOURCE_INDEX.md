@@ -2,7 +2,7 @@
 
 主教程：[工程入门与论文映射](FAOD_PROJECT_GUIDE.md)。
 
-本索引在 2026-09-13 对当前工作区的 **279 个 Python 文件、43,137 行源码** 做 AST 静态扫描；语法错误 0 个。含注释、空行和新增的结构查看工具；不含 `.pyc`、模型权重及下载数据。基线 Git 提交：`0e6cf34322c04a0a0d0bf498e57f55d21cb1a701`，另有工作区修改。
+本索引在 2026-09-13 对当前工作区的 **280 个 Python 文件、43,183 行源码** 做 AST 静态扫描；语法错误 0 个。含注释、空行和新增的结构查看工具；不含 `.pyc`、模型权重及下载数据。基线 Git 提交：`0e6cf34322c04a0a0d0bf498e57f55d21cb1a701`，另有工作区修改。
 
 表中列出顶层符号及各类前几个方法，方便定位；这不是所有备用分支均能运行的声明。方法数较多时省略后续名称，应打开文件查阅。主路径已按调用关系详细解释；BasicSR、MaxViT/Swin 工具库和其他备用实验代码按目录归类。它们可能被导入，但不一定进入默认模型计算图。
 
@@ -530,6 +530,7 @@
 | --- | ---: | --- |
 | [download_faod_datasets.py](../scripts/download_faod_datasets.py) | 155 | `main` |
 | [inspect_faod_model.py](../scripts/inspect_faod_model.py) | 91 | `main` |
+| [smoke_train_with_snapshot.py](../scripts/smoke_train_with_snapshot.py) | 46 | `main`：记录初始参数后执行原 train 主流程 |
 | [wait_and_extract_pku.py](../scripts/wait_and_extract_pku.py) | 128 | `status`；`valid_file`；`other_extractors`；`main`：等待迁移并校验续解压 |
 
 
